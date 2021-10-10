@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Tictactoe-Android(Java)</string>
+    <string name="game_title">Tic Tac Toe</string>
+    <string name="txt_playerX">Player X</string>
+    <string name="txt_playerO">Player O</string>
+    <string name="txt_0">0</string>
+    <string name="txt_restart">Restart</string>
+    <string name="txt_share">Share</string>
+</resources>

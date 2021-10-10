@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/bowlby_one</item>
+        <item>@font/bubblegum_sans</item>
+        <item>@font/carter_one</item>
+        <item>@font/chivo</item>
+        <item>@font/fugaz_one</item>
+        <item>@font/lilita_one</item>
+        <item>@font/margarine</item>
+        <item>@font/monoton</item>
+        <item>@font/seymour_one</item>
+        <item>@font/sriracha</item>
+    </array>
+</resources>
