@@ -31,8 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button [] buttons = new Button[9];
     private Button btn_restart;
     private Button btn_share;
-
-    private int playerXScoreCount, playerOScoreCount, roundCount;
+    private TextView txt_result;
+    private int roundCount;
     boolean activePlayer;
 
     /*
@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn_restart = (Button) findViewById(R.id.btn_restart);
         btn_share = (Button) findViewById(R.id.btn_share);
+        txt_result = (TextView) findViewById(R.id.txt_result);
 
         for(int i = 0 ; i < buttons.length ; i++){
             String buttonID = "btn_" + i;
@@ -64,8 +65,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         roundCount = 0;
-        playerXScoreCount = 0;
-        playerOScoreCount = 0;
         activePlayer = true;
     }
 
@@ -91,13 +90,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(checkWinner()){
             if(activePlayer){
-                playerXScoreCount++;
+                txt_result.setText("Player X Won");
                 Toast.makeText(this, "Player X Won", Toast.LENGTH_SHORT).show();
             } else {
-                playerOScoreCount++;
+                txt_result.setText("Player O Won");
                 Toast.makeText(this, "Player O Won", Toast.LENGTH_SHORT).show();
             }
         } else if(roundCount == 9){
+            txt_result.setText("No winner!");
             Toast.makeText(this, "No winner!", Toast.LENGTH_SHORT).show();
         } else {
             activePlayer = !activePlayer;
@@ -107,8 +107,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v){
                 playAgain();
-                playerXScoreCount = 0;
-                playerOScoreCount = 0;
             }
         });
         verifyStoragePermission(MainActivity.this);
@@ -136,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void playAgain(){
         roundCount = 0;
         activePlayer = true;
+        txt_result.setText("");
 
         for(int i = 0 ; i < buttons.length ; i++){
             gameState[i] = 2;
