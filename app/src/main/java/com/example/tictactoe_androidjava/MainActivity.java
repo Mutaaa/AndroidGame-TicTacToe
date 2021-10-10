@@ -1,19 +1,36 @@
 package com.example.tictactoe_androidjava;
+/** Emilia Hepolehto
+ * m.hepolehto@gmail.com
+**/
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Environment;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    private TextView playerXScore, playerOScore;
     private Button [] buttons = new Button[9];
     private Button btn_restart;
+    private Button btn_share;
 
     private int playerXScoreCount, playerOScoreCount, roundCount;
     boolean activePlayer;
@@ -36,10 +53,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        playerXScore = (TextView) findViewById(R.id.playerXScore);
-        playerOScore = (TextView) findViewById(R.id.playerOScore);
-
         btn_restart = (Button) findViewById(R.id.btn_restart);
+        btn_share = (Button) findViewById(R.id.btn_share);
 
         for(int i = 0 ; i < buttons.length ; i++){
             String buttonID = "btn_" + i;
@@ -77,17 +92,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(checkWinner()){
             if(activePlayer){
                 playerXScoreCount++;
-                updatePlayerScore();
                 Toast.makeText(this, "Player X Won", Toast.LENGTH_SHORT).show();
-                playAgain();
             } else {
                 playerOScoreCount++;
-                updatePlayerScore();
                 Toast.makeText(this, "Player O Won", Toast.LENGTH_SHORT).show();
-                playAgain();
             }
         } else if(roundCount == 9){
-            playAgain();
             Toast.makeText(this, "No winner!", Toast.LENGTH_SHORT).show();
         } else {
             activePlayer = !activePlayer;
@@ -99,7 +109,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 playAgain();
                 playerXScoreCount = 0;
                 playerOScoreCount = 0;
-                updatePlayerScore();
+            }
+        });
+        verifyStoragePermission(MainActivity.this);
+        btn_share.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                takeScreenShot(getWindow().getDecorView());
             }
         });
     }
@@ -117,11 +133,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return  winnerResult;
     }
 
-    public void updatePlayerScore(){
-        playerXScore.setText(Integer.toString(playerXScoreCount));
-        playerOScore.setText(Integer.toString(playerOScoreCount));
-    }
-
     public void playAgain(){
         roundCount = 0;
         activePlayer = true;
@@ -129,6 +140,81 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for(int i = 0 ; i < buttons.length ; i++){
             gameState[i] = 2;
             buttons[i].setText("");
+        }
+    }
+
+    //Screenshot and Share methods reference -> https://trendoceans.com/how-to-take-and-share-screenshot-programmatically-in-android-studio/
+    private void takeScreenShot(View view) {
+
+        //This is used to provide file name with Date a format
+        Date date = new Date();
+        CharSequence format = DateFormat.format("MM-dd-yyyy_hh:mm:ss", date);
+
+        //It will make sure to store file to given below Directory and If the file Directory dosen't exist then it will create it.
+        try {
+            File mainDir = new File(
+                    this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "FilShare");
+            if (!mainDir.exists()) {
+                boolean mkdir = mainDir.mkdir();
+            }
+
+            //Providing file name along with Bitmap to capture screenview
+            String path = mainDir + "/" + "TrendOceans" + "-" + format + ".jpeg";
+            view.setDrawingCacheEnabled(true);
+            Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
+            view.setDrawingCacheEnabled(false);
+
+        //This logic is used to save file at given location with the given filename and compress the Image Quality.
+            File imageFile = new File(path);
+            FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+        //Create New Method to take ScreenShot with the imageFile.
+            shareScreenShot(imageFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //Share ScreenShot
+    private void shareScreenShot(File imageFile) {
+        //Using sub-class of Content provider
+        Uri uri = FileProvider.getUriForFile(
+                this,
+                BuildConfig.APPLICATION_ID + "." + getLocalClassName() + ".provider",
+                imageFile);
+
+        //Explicit intent
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("image/*");
+        intent.putExtra(android.content.Intent.EXTRA_TEXT, "Look my Tic Tac Toe score! :)");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+
+        //It will show the application which are available to share Image; else Toast message will throw.
+        try {
+            this.startActivity(Intent.createChooser(intent, "Share With"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "No App Available", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //Permissions Check
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final String[] PERMISSION_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+    };
+
+    public static void verifyStoragePermission(Activity activity) {
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSION_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE);
         }
     }
 }
